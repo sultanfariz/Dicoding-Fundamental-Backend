@@ -49,17 +49,37 @@ class SongsHandler {
     }
   }
  
-  async getSongsHandler() {
-    let songs = [];
-    songs = await this._service.getSongs();
-    return {
-      status: 'success',
-      data: {
-        songs,
-      },
-    };
+  async getSongsHandler(request, h) {
+    try {
+      let songs = [];
+      songs = await this._service.getSongs();
+      return {
+        status: 'success',
+        data: {
+          songs,
+        },
+      };
+    } catch (error) {
+      if (error instanceof ClientError) {
+        const response = h.response({
+          status: 'fail',
+          message: error.message,
+        });
+        response.code(error.statusCode);
+        return response;
+      }
+    
+      // Server ERROR!
+      const response = h.response({
+        status: 'error',
+        message: 'Maaf, terjadi kegagalan pada server kami.',
+      });
+      response.code(500);
+      console.error(error);
+      return response;      
+    }
   }
- 
+  
   async getSongByIdHandler(request, h) {
     try {
       const { id } = request.params;
@@ -79,7 +99,7 @@ class SongsHandler {
         response.code(error.statusCode);
         return response;
       }
- 
+    
       // Server ERROR!
       const response = h.response({
         status: 'error',
@@ -87,10 +107,10 @@ class SongsHandler {
       });
       response.code(500);
       console.error(error);
-      return response;
+      return response;      
     }
   }
- 
+  
   async putSongByIdHandler(request, h) {
     try {
       this._validator.validateSongPayload(request.payload);
