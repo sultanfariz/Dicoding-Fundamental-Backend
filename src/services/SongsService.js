@@ -72,35 +72,35 @@ class SongsService {
     }
   }
 
-  async verifySongOwner(id, owner) {
-    const query = {
-      text: 'SELECT * FROM songs WHERE id = $1',
-      values: [id],
-    };
-    const result = await this._pool.query(query);
-    if (!result.rowCount) {
-      throw new NotFoundError('Lagu tidak ditemukan');
-    }
-    const note = result.rows[0];
-    if (note.owner !== owner) {
-      throw new AuthorizationError('Anda tidak berhak mengakses resource ini');
-    }
-  }
+  // async verifySongOwner(id, owner) {
+  //   const query = {
+  //     text: 'SELECT * FROM songs WHERE id = $1',
+  //     values: [id],
+  //   };
+  //   const result = await this._pool.query(query);
+  //   if (!result.rowCount) {
+  //     throw new NotFoundError('Lagu tidak ditemukan');
+  //   }
+  //   const song = result.rows[0];
+  //   if (song.owner !== owner) {
+  //     throw new AuthorizationError('Anda tidak berhak mengakses resource ini');
+  //   }
+  // }
 
-  async verifySongAccess(songId, userId) {
-    try {
-      await this.verifySongOwner(songId, userId);
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        throw error;
-      }
-      try {
-        await this._collaborationService.verifyCollaborator(songId, userId);
-      } catch {
-        throw error;
-      }
-    }
-  }
+  // async verifySongAccess(songId, userId) {
+  //   try {
+  //     await this.verifySongOwner(songId, userId);
+  //   } catch (error) {
+  //     if (error instanceof NotFoundError) {
+  //       throw error;
+  //     }
+  //     try {
+  //       await this._collaborationService.verifyCollaborator(songId, userId);
+  //     } catch {
+  //       throw error;
+  //     }
+  //   }
+  // }
 }
 
 module.exports = SongsService;

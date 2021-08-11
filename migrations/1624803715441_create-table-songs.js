@@ -3,7 +3,7 @@
 exports.shorthands = undefined;
 
 exports.up = pgm => {
-    pgm.createTable('songs', {
+	pgm.createTable('songs', {
 		id: {
 			type: 'VARCHAR(50)',
 			primaryKey: true,
@@ -13,19 +13,19 @@ exports.up = pgm => {
 			notNull: true,
 		},
 		year: {
-            type: 'INTEGER',
+			type: 'INTEGER',
 			notNull: true,
 		},
-        performer: {
-            type: 'TEXT',
-            notNull: true,
-        },
-        genre: {
-            type: 'TEXT',
-        },
-        duration: {
-            type: 'INTEGER',
-        },
+		performer: {
+			type: 'TEXT',
+			notNull: true,
+		},
+		genre: {
+			type: 'TEXT',
+		},
+		duration: {
+			type: 'INTEGER',
+		},
 		created_at: {
 			type: 'TEXT',
 			notNull: true,
@@ -38,5 +38,5 @@ exports.up = pgm => {
 };
 
 exports.down = pgm => {
-  pgm.dropTable('songs');
+	pgm.dropTable('songs');
 };
