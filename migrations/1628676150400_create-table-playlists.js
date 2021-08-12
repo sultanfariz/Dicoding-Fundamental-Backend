@@ -20,10 +20,10 @@ exports.up = (pgm) => {
     });
 
     /*
-      Menambahkan constraint UNIQUE, kombinasi dari kolom playlist_id dan owner.
+      Menambahkan constraint UNIQUE, kombinasi dari kolom name dan owner.
       Guna menghindari duplikasi data antara nilai keduanya.
     */
-    pgm.addConstraint('playlists', 'unique_playlist_id_and_owner', 'UNIQUE(playlist_id, owner)');
+    pgm.addConstraint('playlists', 'unique_name_and_owner', 'UNIQUE(name, owner)');
 
     // memberikan constraint foreign key pada kolom owner terhadap users.id
     pgm.addConstraint('playlists', 'fk_playlists.owner_users.id', 'FOREIGN KEY(owner) REFERENCES users(id) ON DELETE CASCADE');
