@@ -6,15 +6,15 @@ exports.up = (pgm) => {
     // membuat table collaborations
     pgm.createTable('collaborations', {
         id: {
-            type: 'VARCHAR(50)',
+            type: 'VARCHAR(100)',
             primaryKey: true,
         },
         playlist_id: {
-            type: 'VARCHAR(50)',
+            type: 'VARCHAR(100)',
             notNull: true,
         },
         user_id: {
-            type: 'VARCHAR(50)',
+            type: 'VARCHAR(100)',
             notNull: true,
         },
     });

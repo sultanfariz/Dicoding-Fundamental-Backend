@@ -1,4 +1,4 @@
-const mapDBToModel = ({
+const mapSongDBToModel = ({
   id,
   title,
   performer,
@@ -8,7 +8,7 @@ const mapDBToModel = ({
   performer,
 });
 
-const mapDBToModelSpecified = ({
+const mapSongDBToModelSpecified = ({
   id,
   title,
   year,
@@ -28,14 +28,14 @@ const mapDBToModelSpecified = ({
   updatedAt: updated_at,
 });
 
-// const mapPlaylistsDBToModel = ({
-//   id,
-//   title,
-//   performer,
-// }) => ({
-//   id,
-//   title,
-//   performer,
-// });
+const mapPlaylistDBToModel = ({
+  id,
+  name,
+  username,
+}) => ({
+  id,
+  name,
+  username,
+});
 
-module.exports = { mapDBToModel, mapDBToModelSpecified };
+module.exports = { mapSongDBToModel, mapSongDBToModelSpecified, mapPlaylistDBToModel };

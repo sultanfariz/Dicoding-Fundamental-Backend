@@ -18,7 +18,7 @@ class PlaylistsHandler {
       const { name = 'untitled' } = request.payload;
       const { id: credentialId } = request.auth.credentials;
 
-      const playlistId = await this._service.addPlaylist({ name, Access: credentialId });
+      const playlistId = await this._service.addPlaylist({ name, owner: credentialId });
 
       const response = h.response({
         status: 'success',
@@ -52,8 +52,10 @@ class PlaylistsHandler {
 
   async getPlaylistsHandler(request, h) {
     try {
+      const { id: credentialId } = request.auth.credentials;
+      // const notes = await this._service.getNotes(credentialId);
       let playlists = [];
-      playlists = await this._service.getPlaylists();
+      playlists = await this._service.getPlaylists(credentialId);
       return {
         status: 'success',
         data: {
@@ -152,7 +154,7 @@ class PlaylistsHandler {
 
       return {
         status: 'success',
-        message: 'lagu berhasil dihapus',
+        message: 'Playlist berhasil dihapus',
       };
     } catch (error) {
       if (error instanceof ClientError) {

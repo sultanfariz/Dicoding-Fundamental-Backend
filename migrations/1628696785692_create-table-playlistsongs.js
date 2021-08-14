@@ -6,15 +6,15 @@ exports.up = (pgm) => {
     // membuat table playlistsongs
     pgm.createTable('playlistsongs', {
         id: {
-            type: 'VARCHAR(50)',
+            type: 'VARCHAR(100)',
             primaryKey: true,
         },
         playlist_id: {
-            type: 'VARCHAR(50)',
+            type: 'VARCHAR(100)',
             notNull: true,
         },
         song_id: {
-            type: 'VARCHAR(50)',
+            type: 'VARCHAR(100)',
             notNull: true,
         },
     });
