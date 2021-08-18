@@ -100,8 +100,7 @@ class PlaylistsService {
       text: `SELECT song_id FROM playlistsongs WHERE playlist_id = $1`,
       values: [playlistId],
     };
-
-    let songsId = await this._pool.query(playlistQuery);
+    const songsId = await this._pool.query(playlistQuery);
     if (!songsId.rowCount) {
       throw new NotFoundError('Playlist kosong');
     }
@@ -117,6 +116,18 @@ class PlaylistsService {
     return songs.map(mapSongDBToModel);
   }
 
+  async deleteSongFromPlaylist(playlistId, songId) {
+    const query = {
+      text: `DELETE FROM playlistsongs WHERE song_id = $1 AND playlist_id = $2 RETURNING id`,
+      values: [songId, playlistId],
+    };
+
+    const result = await this._pool.query(query);
+    if (!result.rowCount) {
+      throw new InvariantError('Lagu gagal dihapus dari Playlist');
+    }
+  }
+
   async verifyPlaylistOwner(id, owner) {
     const query = {
       text: 'SELECT * FROM playlists WHERE id = $1',
@@ -124,7 +135,7 @@ class PlaylistsService {
     };
     const result = await this._pool.query(query);
     if (!result.rowCount) {
-      throw new NotFoundError('Lagu tidak ditemukan');
+      throw new NotFoundError('Playlist tidak ditemukan');
     }
     const playlist = result.rows[0];
     if (playlist.owner !== owner) {
