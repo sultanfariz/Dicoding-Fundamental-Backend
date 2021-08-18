@@ -2,7 +2,8 @@ const { Pool } = require('pg');
 const { nanoid } = require('nanoid');
 const InvariantError = require('../exceptions/InvariantError');
 const NotFoundError = require('../exceptions/NotFoundError');
-const { mapPlaylistDBToModel } = require('../utils');
+const AuthorizationError = require('../exceptions/AuthorizationError');
+const { mapSongDBToModel, mapPlaylistDBToModel } = require('../utils');
 
 class PlaylistsService {
   constructor(collaborationService) {
@@ -26,7 +27,7 @@ class PlaylistsService {
     return result.rows[0].id;
   }
 
-  async addSongToPlaylist(playlistId, songId) {
+  async addSongToPlaylist({ playlistId, songId }) {
     const id = `playlistsongs-${nanoid(16)}`;
     const query = {
       text: 'INSERT INTO playlistsongs VALUES($1, $2, $3) RETURNING id',
@@ -68,27 +69,18 @@ class PlaylistsService {
   }
 
   async getPlaylists(owner) {
-    const query = {
-      text: `SELECT notes.* FROM notes
-      LEFT JOIN collaborations ON collaborations.note_id = notes.id
-      WHERE notes.owner = $1 OR collaborations.user_id = $1
-      GROUP BY notes.id`,
-      values: [owner],
-    };
     const playlistQuery = {
       text: `SELECT playlists.* FROM playlists
       LEFT JOIN collaborations ON collaborations.playlist_id = playlists.id
       WHERE playlists.owner = $1 OR collaborations.user_id = $1
       GROUP BY playlists.id`,
-      // GROUP BY playlists.id, collaborations.id`,
       values: [owner],
     };
-    console.log(owner)
     let result = await this._pool.query(playlistQuery);
-    console.log(result)
     if (!result.rowCount) {
       throw new NotFoundError('Playlist tidak ditemukan');
     }
+
     const ownerQuery = {
       text: `SELECT username FROM users WHERE id = $1`,
       values: [result.rows[0].owner],
@@ -97,8 +89,32 @@ class PlaylistsService {
     if (!ownerResult.rowCount) {
       throw new NotFoundError('User tidak ditemukan');
     }
+
     result.rows[0].username = ownerResult.rows[0].username;
     return result.rows.map(mapPlaylistDBToModel);
+  }
+
+  async getSongsInPlaylist(playlistId) {
+    let songs = [];
+    const playlistQuery = {
+      text: `SELECT song_id FROM playlistsongs WHERE playlist_id = $1`,
+      values: [playlistId],
+    };
+
+    let songsId = await this._pool.query(playlistQuery);
+    if (!songsId.rowCount) {
+      throw new NotFoundError('Playlist kosong');
+    }
+
+    for (const songId of songsId.rows) {
+      const songQuery = {
+        text: `SELECT id, title, performer FROM songs WHERE id = $1`,
+        values: [songId.song_id],
+      };
+      const song = await this._pool.query(songQuery);
+      if (song) songs.push(song.rows[0]);
+    }
+    return songs.map(mapSongDBToModel);
   }
 
   async verifyPlaylistOwner(id, owner) {
