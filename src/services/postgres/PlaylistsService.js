@@ -1,9 +1,9 @@
 const { Pool } = require('pg');
 const { nanoid } = require('nanoid');
-const InvariantError = require('../exceptions/InvariantError');
-const NotFoundError = require('../exceptions/NotFoundError');
-const AuthorizationError = require('../exceptions/AuthorizationError');
-const { mapSongDBToModel, mapPlaylistDBToModel } = require('../utils');
+const InvariantError = require('../../exceptions/InvariantError');
+const NotFoundError = require('../../exceptions/NotFoundError');
+const AuthorizationError = require('../../exceptions/AuthorizationError');
+const { mapSongDBToModel, mapPlaylistDBToModel } = require('../../utils');
 
 class PlaylistsService {
   constructor(collaborationService) {
@@ -78,7 +78,7 @@ class PlaylistsService {
     };
     let result = await this._pool.query(playlistQuery);
     if (!result.rowCount) {
-      throw new NotFoundError('Playlist tidak ditemukan');
+      return [];
     }
 
     const ownerQuery = {
