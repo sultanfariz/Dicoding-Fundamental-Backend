@@ -5,20 +5,21 @@ class UploadsHandler {
 		this._service = service;
 		this._validator = validator;
 
-		this.postUploadImageHandler = this.postUploadImageHandler.bind(this);
+		this.postUploadPictureHandler = this.postUploadPictureHandler.bind(this);
 	}
 
-	async postUploadImageHandler(request, h) {
+	async postUploadPictureHandler(request, h) {
 		try {
 			const { data } = request.payload;
-			this._validator.validateImageHeaders(data.hapi.headers);
+			this._validator.validatePictureHeaders(data.hapi.headers);
 
 			const filename = await this._service.writeFile(data, data.hapi);
 
 			const response = h.response({
 				status: 'success',
+				message: "Gambar berhasil diunggah",
 				data: {
-					fileLocation: `http://${process.env.HOST}:${process.env.PORT}/upload/images/${filename}`,
+					pictureUrl: `http://${process.env.HOST}:${process.env.PORT}/upload/pictures/${filename}`,
 				},
 			});
 			response.code(201);

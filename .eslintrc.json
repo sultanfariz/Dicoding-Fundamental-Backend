@@ -11,5 +11,10 @@
         "ecmaVersion": 12
     },
     "rules": {
+        "linebreak-style": 0,
+        "no-underscore-dangle": ["error", {
+            "enforceInMethodNames": true,
+            "allowFunctionsParams": true
+            }]
     }
 }
