@@ -6,9 +6,10 @@ const AuthorizationError = require('../../exceptions/AuthorizationError');
 const { mapSongDBToModel, mapPlaylistDBToModel } = require('../../utils');
 
 class PlaylistsService {
-  constructor(collaborationService) {
+  constructor(collaborationService, cacheService) {
     this._pool = new Pool();
     this._collaborationService = collaborationService;
+    this._cacheService = cacheService;
   }
 
   async addPlaylist({ name, owner }) {
@@ -39,6 +40,8 @@ class PlaylistsService {
     if (!result.rowCount) {
       throw new InvariantError('Lagu gagal ditambahkan ke dalam playlist');
     }
+    // delete playlist dari dalam cache
+    await this._cacheService.delete(`playlists:${playlistId}`);
     return result.rows[0].id;
   }
 
@@ -95,25 +98,35 @@ class PlaylistsService {
   }
 
   async getSongsInPlaylist(playlistId) {
-    let songs = [];
-    const playlistQuery = {
-      text: `SELECT song_id FROM playlistsongs WHERE playlist_id = $1`,
-      values: [playlistId],
-    };
-    const songsId = await this._pool.query(playlistQuery);
-    if (!songsId.rowCount) {
-      throw new NotFoundError('Playlist kosong');
-    }
-
-    for (const songId of songsId.rows) {
-      const songQuery = {
-        text: `SELECT id, title, performer FROM songs WHERE id = $1`,
-        values: [songId.song_id],
+    try {
+      // mendapatkan lagu dalam playlist dari cache
+      const result = await this._cacheService.get(`playlists:${playlistId}`);
+      return JSON.parse(result);
+    } catch (error) {
+      let songs = [];
+      const playlistQuery = {
+        text: `SELECT song_id FROM playlistsongs WHERE playlist_id = $1`,
+        values: [playlistId],
       };
-      const song = await this._pool.query(songQuery);
-      if (song) songs.push(song.rows[0]);
+      const songsId = await this._pool.query(playlistQuery);
+      if (!songsId.rowCount) {
+        throw new NotFoundError('Playlist kosong');
+      }
+
+      for (const songId of songsId.rows) {
+        const songQuery = {
+          text: `SELECT id, title, performer FROM songs WHERE id = $1`,
+          values: [songId.song_id],
+        };
+        const song = await this._pool.query(songQuery);
+        if (song) songs.push(song.rows[0]);
+      }
+      const mappedResult = songs.map(mapSongDBToModel);
+      // menyimpan catatan dalam cache sebelum return
+      await this._cacheService.set(`playlists:${playlistId}`, JSON.stringify(mappedResult));
+
+      return mappedResult;
     }
-    return songs.map(mapSongDBToModel);
   }
 
   async deleteSongFromPlaylist(playlistId, songId) {
@@ -126,6 +139,9 @@ class PlaylistsService {
     if (!result.rowCount) {
       throw new InvariantError('Lagu gagal dihapus dari Playlist');
     }
+
+    // delete playlist dari dalam cache
+    await this._cacheService.delete(`playlists:${playlistId}`);
   }
 
   async verifyPlaylistOwner(id, owner) {

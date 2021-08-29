@@ -1,9 +1,9 @@
 const ClientError = require('../../exceptions/ClientError');
-const AuthorizationError = require('../../exceptions/AuthorizationError');
 
 class ExportsHandler {
-	constructor(service, validator) {
-		this._service = service;
+	constructor(ProducerService, playlistsService, validator) {
+		this._ProducerService = ProducerService;
+		this._playlistsService = playlistsService;
 		this._validator = validator;
 
 		this.postExportPlaylistsHandler = this.postExportPlaylistsHandler.bind(this);
@@ -12,27 +12,17 @@ class ExportsHandler {
 	async postExportPlaylistsHandler(request, h) {
 		try {
 			this._validator.validateExportPlaylistsPayload(request.payload);
-			const { id: credentialId } = request.auth.credentials;
+			const { id: userId } = request.auth.credentials;
+			const { playlistId } = request.params;
 
-			// playlists = await this._service.getPlaylists(credentialId);
-
-			// const playlistQuery = {
-			// 	text: `SELECT playlists.* FROM playlists
-			// 	LEFT JOIN collaborations ON collaborations.playlist_id = playlists.id
-			// 	WHERE playlists.owner = $1 OR collaborations.user_id = $1
-			// 	GROUP BY playlists.id`,
-			// 	values: [credentialId],
-			// };
-			// let result = await this._pool.query(playlistQuery);
-			// if (!result.rowCount) {
-			// 	return [];
-			// }
+			await this._playlistsService.verifyPlaylistAccess(playlistId, userId);
 
 			const message = {
-				userId: credentialId,
+				userId: userId,
+				playlistId,
 				targetEmail: request.payload.targetEmail,
 			};
-			await this._service.sendMessage(JSON.stringify(message), 'export:playlists');
+			await this._ProducerService.sendMessage(JSON.stringify(message), 'export:playlists');
 
 			const response = h.response({
 				status: 'success',
